@@ -1,20 +1,18 @@
 <div align="center">
-    <a href="https://github.com/zpl-c/librg"><img src="https://user-images.githubusercontent.com/2182108/46903598-f6e48380-cedf-11e8-8b05-c89e80f60b73.png" alt="librg" /></a>
+    <a href="https://github.com/zpl-c/librg"><img src="https://user-images.githubusercontent.com/2182108/83804073-40d23c80-a6b6-11ea-8bee-52a42ed45bed.png" alt="librg" /></a>
 </div>
 
 <div align="center">
-    <a href="https://travis-ci.org/zpl-c/librg"><img src="https://travis-ci.org/zpl-c/librg.svg?branch=master" alt="Build status" /></a>
-    <a href="https://ci.appveyor.com/project/inlife/librg"><img src="https://ci.appveyor.com/api/projects/status/5axr8wa5iyc5xkn8?svg=true" alt="Build status" /></a>
-    <a href="https://www.npmjs.com/package/librg.c"><img src="https://img.shields.io/npm/v/librg.c.svg?maxAge=3600" alt="NPM version" /></a>
-    <a href="https://david-dm.org/zpl-c/librg"><img src="https://img.shields.io/david/zpl-c/librg.svg?maxAge=3600" alt="Dependencies" /></a>
-    <a href="https://kiwiirc.com/client/irc.handmade.network:+7777/?nick=guest|?#librg"><img src="https://img.shields.io/badge/IRC-%23librg-blue.svg" alt="IRC server"/></a>
-    <a href="https://discord.gg/2fZVEym"><img src="https://discordapp.com/api/guilds/354670964400848898/embed.png" alt="Discord server" /></a>
-    <a href="LICENSE"><img src="https://img.shields.io/github/license/zpl-c/librg.svg" alt="license" /></a>
+    <a href="https://github.com/zpl-c/librg/actions"><img src="https://img.shields.io/github/workflow/status/zpl-c/librg/tests?label=Tests&style=for-the-badge" alt="build status" /></a>
+    <img src="https://img.shields.io/github/package-json/v/zpl-c/librg?style=for-the-badge" alt="version" /></a>
+    <a href="https://discord.gg/2fZVEym"><img src="https://img.shields.io/discord/354670964400848898?color=7289DA&style=for-the-badge" alt="discord" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/github/license/zpl-c/librg?style=for-the-badge" alt="license" /></a>
 </div>
 
 <br />
+
 <div align="center">
-  Pure C99 game networking library for building simple and elegant cross-platform multiplayer client-server solutions.
+  Making multi-player gamedev simpler since 2017. Single-header cross-platform world replication in pure C99.
 </div>
 
 <div align="center">
@@ -22,288 +20,113 @@
     Built with love using <a href="https://github.com/zpl-c/zpl"><strong>zpl</strong></a>
     &bull; Brought to you by <a href="https://github.com/inlife">@inlife</a>,
     <a href="https://github.com/zaklaus">@zaklaus</a>
-    and <a href="#contributors">contributors</a>
+    and other <a href="https://github.com/zpl-c/librg/graphs/contributors">contributors</a>
   </sub>
 </div>
 
 ## Introduction
 
-Have you ever wondered why is it always so hard to make a multi-player game, even the most basic one?
-And the complexity even increases with bigger amounts of players and things you need to sync between your clients.
-This library is designed exactly to solve that problem. It has a simple interface with highly flexible base which allows you to build great things!
+**librg** is a lightweight library that serves as a middleware between data-transferring libraries (networking, file-streaming, etc.) and core application/game logic.
 
-Many people think that implementing networking solution for your game project is the most complicated and time consuming task.
-We believe many people are afraid to even try, which results in the fact, that you almost never see small games made by indie developers having any type of networking involved.
+Main responsibilities of the library include:
+ * entity tracking (tracks which entity belongs to what world, and what states do they have)
+ * owner tracking (tracks which participant owns what entity)
+ * area of interest management (controls what can and cannot be seen a participant)
+ * world replication (re-creates a limited representation in a destination world of what is considered visible to a participant in the source world)
 
-Thus we hope that with this library, which is just a small step in the direction, we might help anyone and everyone who wants to add a multi-player capabilities inside one's game.
-
-## Description
-
-**librg** is a light-weight "mid-level" (can be considered/used as both low-level and high-level) game networking library. It is based on [our fork of **ENet** library](https://github.com/zpl-c/enet),
-which gives us low-level UDP networking with optional reliability. That, accompanied by our handmade general purpose **zpl** library, high-performant network culling algorithms,
-event-based approach used for creation and management of your flow with a simple interface, gives you the tools to create a simple and yet powerful multi-player based projects.
-
-Library is oriented to work with **single-sharded** boundary-limited 2D/3D multiplayer worlds with **up to 4000 simultaneous** connected clients.
+The library was born to solve complexities of setting up and managing the flow of multi-player games and dedicated game servers.
+It came a long way of stripping out things that were non-essential, slowly sculpting into its current form, which you are able to see and use today.
 
 ## Features
 
-* high performance
-* minimalistic interface
-* server-side network culling
-* client-side entity streaming
-* fast and performant event system
-* highly configurable, both at compile- and run-time
-* lightweight, minimal dependencies, single-header
-* written in C99 (portability reasons)
-* npm support, cmake support
+ * cross-platform support
+ * lightweight, single-header
+ * supports 2d/3d worlds of various sizes
+ * compile- and run-time configurable
+ * written in C99 (portability reasons)
+ * no external dependencies
+ * built-in unit test coverage
 
-## How it works
+## F.A.Q.
 
-#### General
+1.  **Is this a networking library?**
 
-As we've mentioned before, librg has a simple interface. Like many C libraries, it has some sort of application context, which makes it  thread-safe and offers the ability to run multiple instances under the same process. Here is sample server code:
+    * Not really, no. It is intended to be used with netwoking in mind, but it does not have any networking capabilities on its own.
 
-```c
-int main(int argc, char const *argv[]) {
-    librg_ctx ctx = { 0 };
-    librg_init(&ctx);
+2. **Can I use any networking library with it?**
 
-    librg_address addr = { 27010 };
-    librg_network_start(&ctx, addr);
+    * Yes. All you need is an ability to read data to and from the buffer, and most libraries do support that. Theoretically it can be anything as low level as pure `UDP`, and up to `Websocket`/`WebRTC`.
 
-    bool running = true;
-    while (running) {
-        librg_tick(&ctx);
-    }
+3. **The repository contains a bunch of `*.h` and `*.c` files, and yet you suggest it is a single-header library, how is that possible?**
 
-    librg_network_stop(&ctx);
-    librg_free(&ctx);
-    return 0;
-}
-```
+    * The library is spread into multiple files so it is easier to work with it while developing, however each time a new release is created, a "bundled" version of the header file is created and pushed directly to the [releases](https://github.com/zpl-c/librg/releases) page.
 
-#### Events
+4. **Does librg offer an entity system?**
 
-Everything is built around events, something gets created - the related event gets triggered. Your task as a developer is to use these events and write appropriate handlers.
+     * No, the library does not manage nor actually create its own entities, it rather expects you to provide your own entity/object handle to attach some internal data onto it, which in context of the library is called "tracking".
 
-Let's look at the example, client connects to the server, spawns on the map, and librg triggers `LIBRG_ENTITY_CREATE` event for every entity in the player's range:
+5. **How do I pack data, do you provide methods for that?**
 
-```c
-void mygame_entity_create(librg_event *event) {
-    int entity_id   = event->entity->id;
-    int entity_type = event->entity->type;
-    vec3 position   = event->entity->position;
+    * No, the library does not provide any data-packing/serialization methods. It's recommended you use some existing library for that (`protobuf`, `flatbuffers`, `msgpack`, etc.), or make your own implementation.
 
-    // and call your game method to spawn entity in the game world
-    MyEntity *entity = MyGame_CreateEntity(entity_type, position);
-    myEntities[entity_id] = entity;
-}
+6. **I see you mention chunks, does it mean my game/app should be chunk-based?**
 
-    // ...
-    // register the handler
-    librg_event_add(&ctx, LIBRG_ENTITY_CREATE, mygame_entity_create);
-    // ...
-```
+    * No. Chunks are only used internally, to artificially divide the space of the world on statically sized squares/cubes so that querying would work efficiently. Even if your game does use chunks, their amount/sizes/offsets are not required to much and be the same.
 
-This way, the client on his side creates all entities that server tells him to create.
-And the best part is that, server will tell only about those entities that are in the specified range.
-This allows you to have bigger amounts of synced data, using the same amount of bandwidth.
+## Documentation
 
-Same concept applies when your client's entity needs to be removed, you just register the `LIBRG_ENTITY_REMOVE` handler and despawn the entity from the game world.
+To read detailed documentation about the library, see examples and quick start guide, please visit our [documentation page](https://zpl-c.github.io/librg/#/quickstart).
 
-#### Server sync
+Additionally you can check [code/apps](code/apps) folder for actual code examples.
 
-What if you need, and most likely you do, to send some data, on every server tick, like object position or rotation, or maybe even object color.
+## Illustration
 
-You need to register a handler for the `LIBRG_ENTITY_UDPATE` event, but this time you need to do it on both sides!
+Here is a simple illustration that attempts to describe how the library works on a simple 2d world of 4x4 chunks.
+For a 3d world of bigger size everything would work in a very similar way, just in 3 dimensions.
 
-```c
-/* server side */
-void myserver_entity_update(librg_event *event) {
-    // change the position, it will be sent automatically
-    event->entity->position.x += 5.0f;
+<a href="https://user-images.githubusercontent.com/2182108/83945607-87d64400-a814-11ea-8897-3c268b26b0f7.png" target="_blank">
+  <img src="https://user-images.githubusercontent.com/2182108/83945607-87d64400-a814-11ea-8897-3c268b26b0f7.png" alt="librg illustration" />
+</a>
 
-    // send some u32 numbers by manually writing to the stream
-    librg_data_wu32(event->data, 0); /* black color */
-    librg_data_wu32(event->data, 300); /* speed is 300 */
-}
+<div align="center">
+  <sub>(click on the image to view full-size)</sub>
+</div>
 
-/* client side */
-void myclient_entity_update(librg_event *event) {
-    int entity_id    = event->entity->id;
-    MyEntity *entity = myEntities[entity_id];
+## Migration
 
-    // position has been updated, we can set the ingame object's position
-    MyGame_SetPosition(entity, event->entity->position);
+If you've used the library before version `v6.0.0`, it is recommended to read the migration guide [located here](https://zpl-c.github.io/librg/#/migration).
 
-    // read u32 numbers manually from the stream
-    MyGame_SetColor(entity, librg_data_ru32(event->data));
-    MyGame_SetSpeed(entity, librg_data_ru32(event->data));
-}
+## Support
 
-```
+We are testing the library for various platforms. This table provides some sort of description for compatibility.
+If you have tested it, and your result is different from the one in the table, please feel free to describe the issue in the [issues](https://github.com/zpl-c/librg/issues).
 
-Now, when you write data on the server, you just read it back on the client in the same order as it was written. That's it, you have a server streamed sync!
 
-#### Messages
+|  Platform / Result | Windows       | macOS         | Linux         | iOS           | Android       | Raspberry Pi  | OpenBSD       | FreeBSD       | Emscripten    |
+|:------------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|
+| ❔                 |               |               |               | clang         | clang         | gcc, clang    | gcc, clang    | gcc, clang    |               |
+| ✅                 | msvc, mingw   | gcc, clang    | gcc, clang    |               |               |               |               |               | emcc          |
 
-Considering you've already synced your server and clients after reading the previous section, you might want to trigger some actions/commands on the server, so it could become interactive.
-And the way you can do it is quite simple, it is similar to events you are already familiar with, so it should be an easy task:
+#### Legend:
 
-```c
-/* server side */
-void myserver_onmessage1(librg_message *msg) {
-    printf("we got message 1\n");
-}
+* ❔ - Library was not tested on this platform/compiler yet
+* ✅ - Library successfully compiles and all tests are executed properly
 
-void myserver_onmessage2(librg_message *msg) {
-    printf("we got message 2\n");
 
-    YourData yourData; /* read data back */
-    librg_data_rptr(msg->data, &yourData, sizeof(YourData));
-}
+## Development
 
-    // ...
-    librg_network_add(&ctx, MESSAGE_1, myserver_onmessage1);
-    librg_network_add(&ctx, MESSAGE_2, myserver_onmessage2);
-    // ...
+If you wish to contribute, add new feature, optimizations, or overall improvements, here are the instructions on how to do that:
 
+1. Clone the repo, f.e.: `git clone https://github.com/zpl-c/librg.git`
+2. Run `make` to build all projects, and verify everything works
+3. Develop a feature, add tests for it in `code/tests/`
+4. And eventually run `make test` again to check
 
-/* client side */
-    // ...
-    librg_message_send_all(&ctx, MESSAGE_1, NULL, 0); /* send an empty message */
-    librg_message_send_all(&ctx, MESSAGE_2, &yourData, sizeof(yourData)); /* send some clean data */
-```
+In case you are working from **Windows**, and/or are not able to use `make`, you can also use built-in `cmake` config file to generate a Visual Studio solution, to do that:
 
-#### Client sync
+1. `mkdir build`
+2. `cd build`
+3. `cmake ../misc -G"Visual Studio 16 2019"` (or any configuration you have)
+4. `cmake --open .` (opens VS with the solution)
+5. And repeat steps from above
 
-If you want your client to send updates about one or more entities to the server and you need a simple and fast solution, you can stream your entities right from your clients.
-For example, you have a huge game world, (e.g. open world sandbox game) where there are some entities which are not players, however you need someone to control them.
-Considering the fact, that you probably don't have any game logic on the server, you need one of your clients to send updates about ingame entities to other clients.
-
-This can be achieved quite easily, for a specific entity, you can just call method `librg_entity_control_set` on the server.
-It will make provided client responsible for streaming this entity to the server.
-
-Now, what you need to do is to update that entity data from your local client's game world. You can achieve that like this:
-
-```c
-/* client side */
-void mygame_client_stream(librg_event *event) {
-    // write new entity position (will be sent automatically)
-    event->entity->position = MyGame_GetPosition(event->entity->id);
-
-    // write some data
-    librg_data_wf32(&data, MyGame_GetDotVelocity(event->entity->id));
-}
-
-    // ...
-    librg_event_add(&ctx, LIBRG_CLIENT_STREAMER_UPDATE, mygame_client_stream);
-    // ...
-```
-
-Now on the server side, you pretty much do the same, it is very similar to what we did for entity update, with only difference being that we use `LIBRG_CLIENT_STREAMER_UPDATE` event id.
-
-#### Querying
-
-Sometimes when you need loop over entities visible (streamed) for a particular entity on the server, you will need to do a query:
-
-```c
-    librg_entity_id *results;
-    int amount = librg_entity_query(&ctx, my_entity_id, &results);
-
-    for (int i = 0; i < amount; ++i) {
-        librg_entity *entity = librg_entity_fetch(&ctx, results[i]);
-        // do stuff with entity
-    }
-```
-
-#### Additional
-
-You can and **MUST** (not really, but we really advise you to) look into the source code ([librg.h](include/librg.h)).
-There we have many helpful (and not really) comments that will guide you or at very least give you explanation what is this or that, why it is needed and how to use it.
-
-Also you can look inside our [test](test/) folder, there are many different things. It's usually used for the development purposes, but I guarantee you can find something interesting in there.
-
-## Installation
-
-There are multiple way of how you can embed the library:
-
-* automatic
-    * using **[npm](https://www.npmjs.com/get-npm)**. Just run `npm install librg.c` in folder with your project, that's it!   
-        <sub><i>(maybe you will not like the `node_modules` folder, however you can move it or rename it, if you are *not planning* to fetch any udpates via npm)</i></sub>
-
-* manual:
-    * downloading/copying only [librg.h](https://raw.githubusercontent.com/zpl-c/librg/master/include/librg.h) file, and doing same for each dependency.
-    * downloading/cloning repos for the librg and for each other dependency.
-
-Essentially, what you will need to have in the result is a set of single-header libraries. Which you can just put in the same folder and point the compiler include ther.
-
-## Structure
-
-The library is built with **single header-only file design**. So everything librg provides is located in [includes/librg.h](https://github.com/zpl-c/librg/blob/master/include/librg.h) file.  
-However it has **dependencies**. All of them are also single header-only libraries.
-
-### List
-Current list and description of dependencies looks like this:
-
-| Library | Version | Description |
-|:-:|:-:|---|
-| [enet](https://github.com/zpl-c/enet) | ![](https://img.shields.io/npm/v/enet.c.svg?maxAge=3600) | **enet** is a quite popular high performant low-level network library. A core for the librg. |
-| [zpl](https://github.com/zpl-c/zpl) | ![](https://img.shields.io/npm/v/zpl.c.svg?maxAge=3600) | **zpl** is a basic library containing many functions you would use in every day programming. |
-
-### Build instructions
-librg comes with a **[CMakeLists.txt](CMakeLists.txt)** file. You can use it to integrate the library inside your project. Or use it as a boilerplate for new project.
-There is also the **[scripts](scripts/)** folder with shell scripts, which are usually used for the development purposes, however they also can be used as an example of instructions you need to provide to your compiler.
-
-
-## Use-cases
-
-* As "built-in" server:  
-    Server can be merged with the client and run even from the same thread. It will result in a quite common concept of client-hosted game sessions for **friends**.
-    However it requires user, or you, to deal with stuff like public ip/visibility.
-
-* As proxy server:  
-    Would you like to have a **dedicated server** solution? Server will be used as a proxy to store and send accumulated player data.
-    Considering the fact that you don't have (almost) any game logic on the server side, it can handle big amounts of clients.
-    Similar example can be something like [San-Andreas Multiplayer](http://www.sa-mp.com/).
-
-* As thin client (advanced):  
-    For client side, you will use thin-client "pattern". All user actions will be sent directly to the server.
-    Requires you to write all the server side systems, like physics handling, game world management, and **gameloop on the server side**.
-
-* Any other possible way that was not mentioned.
-
-## Testing
-
-We started testing the library for different platforms. This table provides some sort of description for compatibility.
-If you have tested it, and it compiles, or it perhaps stopped compiling, please feel free to describe the issue in the [issues](https://github.com/zpl-c/librg/issues).
-
-| *Compiler* / Target   | Windows               | Linux                 | macOS                 | iOS                   | Android               |
-|:-:|:-:|:-:|:-:|:-:|:-:    |
-| *clang C*             | :grey_question:       | :white_check_mark:    | :white_check_mark:    | :white_check_mark:    | :grey_question:       |
-| *gcc C*               |                       | :white_check_mark:    | :white_check_mark:    |                       |                       |
-| *msvc C*              | :white_check_mark:    |                       |                       |                       |                       |
-| *mingw C*             | :white_check_mark:    |                       |                       |                       |                       |
-| *clang C++*           | :grey_question:       | :white_check_mark:    | :white_check_mark:    | :grey_question:       | :white_check_mark:    |
-| *gcc C++*             |                       | :white_check_mark:    | :grey_question:       |                       |                       |
-| *msvc C++*            | :white_check_mark:    |                       |                       |                       |                       |
-| *mingw C++*           | :white_check_mark:    |                       |                       |                       |                       |
-
-<sub>
-:white_check_mark: - compiles/runs without any errors.  
-:grey_question: - not tested.  
-:red_circle: - compilation/runtime faults.  
-</sub>
-
-## Contributors
-
-Current ~~list~~ table of contributors looks like this:
-
-| [Inlife](https://github.com/inlife) | [ZaKlaus](https://github.com/zaklaus) | You |
-|:-:|:-:|:-:|
-|[![](https://avatars3.githubusercontent.com/u/2182108?v=4&s=64)](https://github.com/inlife)|[![](https://avatars0.githubusercontent.com/u/9026786?v=4&s=64)](https://github.com/zaklaus)|![](https://avatars0.githubusercontent.com/u/19527937?v=4&s=64)|
-
-If you want to help us - you are very welcome. New features, performance optimizations, fixes for bugs and errors are waiting for you!
-
-## License
-Last time we checked it was **Apache License 2.0**. However we suggest you to [check it again](LICENSE), what if it has been changed!
